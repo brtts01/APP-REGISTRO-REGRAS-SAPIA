@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'">
+<title>Registro de Regras SAPIA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f0f5f2;
+    --surface: #ffffff;
+    --border: #c4d9ce;
+    --border-strong: #9ec4b2;
+    --accent: #11A15F;
+    --accent-dark: #0c7a48;
+    --accent-light: #e2f4eb;
+    --red: #c0392b;
+    --red-light: #fde8e6;
+    --text: #192e22;
+    --text-muted: #4a6e5a;
+    --text-dim: #3a5a48;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 54px; flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .topbar-mark { width: 8px; height: 32px; background: var(--accent); border-radius: 2px; }
+  .topbar h1 { font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing: .06em; color: var(--text); }
+  .topbar-pasta {
+    font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+    letter-spacing: .04em; display: flex; align-items: center; gap: 8px;
+  }
+  .topbar-pasta span { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-pasta {
+    background: var(--accent-light); border: 1px solid var(--border-strong);
+    color: var(--accent-dark); border-radius: 5px; padding: 5px 12px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .07em;
+    text-transform: uppercase; cursor: pointer; transition: all .18s; font-weight: 600;
+    white-space: nowrap;
+  }
+  .btn-pasta:hover { background: var(--accent); color: #fff; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px; flex-shrink: 0;
+  }
+  .tab {
+    padding: 12px 22px; cursor: pointer;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-muted); border-bottom: 2px solid transparent;
+    transition: all .18s; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--accent); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── MAIN AREA ── */
+  .main { flex: 1; overflow: hidden; position: relative; }
+  .panel { display: none; height: 100%; overflow-y: auto; padding: 28px; }
+  .panel.active { display: block; }
+
+  /* ── FORM ── */
+  .form-inner { max-width: 740px; margin: 0 auto; }
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 26px 30px; margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(17,161,95,.06);
+  }
+  .section-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+    margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field > label, .field-label {
+    display: block; font-size: 11px; font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 6px; font-family: var(--mono);
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 9px 13px; color: var(--text);
+    font-family: var(--sans); font-size: 14px; outline: none;
+    transition: border-color .2s, box-shadow .2s; resize: vertical;
+    appearance: none; -webkit-appearance: none;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(17,161,95,.13); background: #fff;
+  }
+  textarea { min-height: 76px; }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: ''; position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+    pointer-events: none; width: 0; height: 0;
+    border-left: 5px solid transparent; border-right: 5px solid transparent;
+    border-top: 6px solid var(--text-muted);
+  }
+
+  .toggle-group { display: flex; gap: 10px; }
+  .toggle-group input[type="radio"] { display: none; }
+  .toggle-group label {
+    flex: 1; text-align: center; padding: 9px 16px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    cursor: pointer; font-size: 12px; letter-spacing: .07em; color: var(--text-muted);
+    transition: all .18s; text-transform: uppercase; font-family: var(--mono); font-weight: 500;
+  }
+  .toggle-group input[type="radio"]:checked + label {
+    background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); font-weight: 600;
+  }
+
+  .field-inline { display: flex; align-items: flex-start; gap: 12px; }
+  .field-inline .textarea-wrap { flex: 1; }
+  .side-flags { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 2px; }
+
+  .flag-box {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 12px; min-width: 148px;
+  }
+  .flag-title {
+    font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 8px; line-height: 1.4;
+  }
+  .flag-options { display: flex; gap: 8px; }
+  .flag-options input[type="radio"] { display: none; }
+  .flag-options label {
+    flex: 1; text-align: center; padding: 6px 8px; border-radius: 5px;
+    border: 1px solid var(--border); cursor: pointer; font-size: 11px;
+    letter-spacing: .06em; transition: all .18s; text-transform: uppercase;
+    color: var(--text-muted); background: var(--surface);
+    font-family: var(--mono); font-weight: 500;
+  }
+  #flag-sim:checked + label { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); font-weight: 600; }
+  #flag-nao:checked + label { background: var(--red-light); border-color: var(--red); color: var(--red); font-weight: 600; }
+
+  .btn-flag {
+    background: var(--bg); border: 1px dashed var(--border-strong);
+    color: var(--text-muted); border-radius: 6px; padding: 8px 12px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; cursor: pointer; transition: all .18s;
+    font-weight: 500; min-width: 148px; text-align: center;
+  }
+  .btn-flag:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); border-style: solid; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 6px; }
+  .btn-reset {
+    background: transparent; border: 1px solid var(--border-strong);
+    color: var(--text-muted); border-radius: 6px; padding: 10px 22px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase; cursor: pointer; transition: all .2s; font-weight: 500;
+  }
+  .btn-reset:hover { border-color: var(--text-dim); color: var(--text); }
+  .btn-generate {
+    background: var(--accent); border: none; color: #fff;
+    border-radius: 6px; padding: 10px 26px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+    text-transform: uppercase; font-weight: 600; cursor: pointer;
+    transition: background .2s, transform .15s;
+    box-shadow: 0 2px 8px rgba(17,161,95,.28);
+  }
+  .btn-generate:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  .btn-generate:active { transform: translateY(0); }
+
+  /* ── HISTORICO ── */
+  .hist-inner { max-width: 740px; margin: 0 auto; }
+  .hist-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .hist-toolbar h2 { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: .04em; }
+  .btn-reload {
+    background: var(--accent-light); border: 1px solid var(--border-strong);
+    color: var(--accent-dark); border-radius: 6px; padding: 7px 16px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .07em;
+    text-transform: uppercase; cursor: pointer; transition: all .18s; font-weight: 600;
+  }
+  .btn-reload:hover { background: var(--accent); color: #fff; }
+
+  .hist-empty {
+    text-align: center; padding: 60px 20px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+    letter-spacing: .06em;
+  }
+
+  .hist-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 22px; margin-bottom: 12px;
+    display: flex; align-items: flex-start; gap: 16px;
+    box-shadow: 0 1px 3px rgba(17,161,95,.05);
+    transition: box-shadow .18s;
+  }
+  .hist-card:hover { box-shadow: 0 2px 10px rgba(17,161,95,.12); }
+  .hist-card-info { flex: 1; min-width: 0; }
+  .hist-card-title {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--text); margin-bottom: 5px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hist-card-meta {
+    font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+    letter-spacing: .05em; display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .hist-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 3px; font-family: var(--mono);
+  }
+  .hist-badge.nova { background: #e8f4e8; color: #1a6b3a; border: 1px solid #a8d8b8; }
+  .hist-badge.ajuste { background: var(--accent-light); border: 1px solid var(--border-strong); color: var(--accent-dark); }
+
+  .hist-card-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-ver {
+    background: var(--accent-light); border: 1px solid var(--border-strong);
+    color: var(--accent-dark); border-radius: 5px; padding: 6px 14px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .07em;
+    text-transform: uppercase; cursor: pointer; transition: all .18s; font-weight: 600;
+  }
+  .btn-ver:hover { background: var(--accent); color: #fff; }
+  .btn-del {
+    background: transparent; border: 1px solid #e0c8c8;
+    color: #b06060; border-radius: 5px; padding: 6px 10px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .07em;
+    text-transform: uppercase; cursor: pointer; transition: all .18s; font-weight: 600;
+  }
+  .btn-del:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
+
+  /* ── NO PASTA BANNER ── */
+  .no-pasta-banner {
+    background: #fffbe6; border: 1px solid #e8d87a; border-radius: 10px;
+    padding: 20px 24px; margin-bottom: 20px;
+    font-family: var(--mono); font-size: 12px; color: #6b5a10;
+    letter-spacing: .04em; line-height: 1.6;
+  }
+  .no-pasta-banner strong { display: block; margin-bottom: 8px; font-size: 13px; }
+
+  /* ── PREVIEW OVERLAY ── */
+  #preview-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(8,24,15,.72); z-index: 200;
+    overflow-y: auto; padding: 36px 20px;
+  }
+  #preview-overlay.active { display: flex; flex-direction: column; align-items: center; }
+
+  .preview-toolbar {
+    width: 100%; max-width: 720px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .preview-toolbar span {
+    font-family: var(--mono); font-size: 11px; color: #b0d8c0; letter-spacing: .1em; text-transform: uppercase;
+  }
+  .preview-actions { display: flex; gap: 10px; }
+  .btn-print {
+    background: var(--accent); border: none; color: #fff;
+    border-radius: 6px; padding: 8px 20px; font-family: var(--mono);
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    font-weight: 600; cursor: pointer; transition: background .2s;
+  }
+  .btn-print:hover { background: var(--accent-dark); }
+  .btn-close-prev {
+    background: transparent; border: 1px solid rgba(176,216,192,.35); color: #b0d8c0;
+    border-radius: 6px; padding: 8px 16px; font-family: var(--mono); font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: all .2s;
+  }
+  .btn-close-prev:hover { border-color: #b0d8c0; }
+
+  /* ── DOC PAPER ── */
+  #doc-paper {
+    background: #fff; color: #111; width: 100%; max-width: 720px;
+    border-radius: 4px; padding: 56px 64px; font-family: 'IBM Plex Sans', sans-serif;
+    box-shadow: 0 24px 64px rgba(0,0,0,.4);
+  }
+  .doc-header-bar {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    border-bottom: 2px solid #111; padding-bottom: 18px; margin-bottom: 24px;
+  }
+  .doc-header-left { display: flex; align-items: flex-start; gap: 14px; }
+  .doc-accent-bar { width: 4px; border-radius: 3px; background: #11A15F; align-self: stretch; flex-shrink: 0; }
+  .doc-title-main {
+    font-size: 21px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2;
+    font-family: 'IBM Plex Mono', monospace; max-width: 400px;
+  }
+  .doc-meta { text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #555; letter-spacing: .06em; line-height: 1.8; }
+  .doc-tipo-badge {
+    display: inline-block; background: #111; color: #fff;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: .12em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 3px; margin-top: 9px;
+  }
+  .doc-tipo-badge.ajuste { background: #11A15F; }
+
+  .doc-block-a {
+    background: #f3f9f6; border-left: 3px solid #11A15F;
+    border-radius: 0 6px 6px 0; padding: 14px 18px; margin-bottom: 28px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px;
+  }
+  .doc-field-a label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #5a8a72; font-family: 'IBM Plex Mono', monospace; display: block; margin-bottom: 2px; }
+  .doc-field-a span { font-size: 13px; font-weight: 500; color: #111; display: block; }
+
+  .doc-divider { display: flex; align-items: center; gap: 12px; margin: 26px 0; }
+  .doc-divider-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #11A15F; white-space: nowrap; font-weight: 600; }
+  .doc-divider-line { flex: 1; height: 1px; background: #dde8e3; }
+
+  .doc-grid-b { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 40px; margin-bottom: 12px; }
+  .doc-grid-b .full { grid-column: 1 / -1; }
+  .doc-field-b label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #7aaa8e; font-family: 'IBM Plex Mono', monospace; display: block; margin-bottom: 5px; }
+  .doc-field-b .value { font-size: 13px; color: #111; line-height: 1.55; border-bottom: 1px solid #e2ede8; padding-bottom: 8px; min-height: 28px; }
+
+  .doc-flag-inline { display: flex; align-items: baseline; gap: 10px; }
+  .doc-flag-inline .value { flex: 1; }
+  .flag-pill { font-size: 10px; font-weight: 700; letter-spacing: .08em; font-family: 'IBM Plex Mono', monospace; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+  .flag-pill.sim { background: #e2f7ed; color: #0c7a48; border: 1px solid #11A15F; }
+  .flag-pill.nao { background: #fde8e6; color: #c0392b; border: 1px solid #e74c3c; }
+
+  .doc-footer { margin-top: 36px; border-top: 1px solid #dde8e3; padding-top: 14px; display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #bbb; letter-spacing: .07em; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface); border: 1px solid var(--accent);
+    color: var(--accent-dark); font-family: var(--mono); font-size: 12px;
+    letter-spacing: .07em; padding: 11px 18px; border-radius: 8px;
+    opacity: 0; transform: translateY(10px); transition: all .28s;
+    pointer-events: none; z-index: 999; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(17,161,95,.18);
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.erro { border-color: var(--red); color: var(--red); }
+
+  /* ── CAMPO INVALIDO ── */
+  .campo-invalido {
+    border-color: var(--red) !important;
+    box-shadow: 0 0 0 3px rgba(192,57,43,.13) !important;
+    background: #fff8f8 !important;
+  }
+  .toggle-group.campo-invalido {
+    border: 1px solid var(--red); border-radius: 6px; padding: 6px;
+    background: #fff8f8; box-shadow: 0 0 0 3px rgba(192,57,43,.13);
+  }
+  .btn-del-disabled {
+    background: transparent; border: 1px solid #ddd;
+    color: #ccc; border-radius: 5px; padding: 6px 10px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .07em;
+    text-transform: uppercase; cursor: not-allowed; font-weight: 600;
+  }
+
+  /* ── HIST SEARCH & FILTERS ── */
+  .hist-search-bar {
+    margin-bottom: 12px;
+  }
+  .hist-search-bar input[type="text"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 16px; color: var(--text);
+    font-family: var(--sans); font-size: 14px; outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    box-shadow: 0 1px 3px rgba(17,161,95,.05);
+  }
+  .hist-search-bar input[type="text"]:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(17,161,95,.13); background: #fff;
+  }
+  .hist-filtros {
+    display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(17,161,95,.04);
+  }
+  .filtro-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  .filtro-label {
+    font-family: var(--mono); font-size: 9px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
+  }
+  .hist-filtros .select-wrap select {
+    padding: 7px 30px 7px 10px; font-size: 12px; background: var(--bg);
+  }
+  .btn-limpar-filtros {
+    background: transparent; border: 1px dashed var(--border-strong);
+    color: var(--text-muted); border-radius: 6px; padding: 7px 14px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .07em;
+    text-transform: uppercase; cursor: pointer; transition: all .18s; font-weight: 500;
+    white-space: nowrap; align-self: flex-end;
+  }
+  .btn-limpar-filtros:hover { background: var(--red-light); border-color: var(--red); color: var(--red); border-style: solid; }
+  .hist-contagem {
+    font-family: var(--mono); font-size: 10px; color: var(--text-muted);
+    letter-spacing: .05em; margin-bottom: 12px;
+  }
+
+  @media print {
+    body > *:not(#preview-overlay) { display: none !important; }
+    #preview-overlay { display: block !important; position: static !important; background: none !important; padding: 0 !important; }
+    .preview-toolbar { display: none !important; }
+    #doc-paper { box-shadow: none !important; max-width: 100% !important; border-radius: 0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-mark"></div>
+    <h1>REGISTRO DE REGRAS SAPIA</h1>
+  </div>
+  <div class="topbar-pasta">
+    <span id="pasta-label">Nenhuma pasta configurada</span>
+    <button class="btn-pasta" onclick="escolherPasta()">Alterar Pasta</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="trocarTab('formulario', this)">Novo Registro</div>
+  <div class="tab" onclick="trocarTab('historico', this)">Historico de Regras</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- FORMULARIO -->
+  <div class="panel active" id="panel-formulario">
+    <div class="form-inner">
+
+      <div id="banner-sem-pasta" class="no-pasta-banner" style="display:none">
+        <strong>Pasta compartilhada nao configurada</strong>
+        Configure a pasta de rede antes de salvar registros. Clique em "Alterar Pasta" no canto superior direito.
+      </div>
+
+      <div class="section">
+        <div class="section-label">Identificacao do Documento</div>
+        <div class="field">
+          <label>Titulo</label>
+          <input type="text" id="titulo" placeholder="Ex: 123Aut - Nº do Erro">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Nº do Chamado</label>
+            <input type="text" id="chamado" placeholder="Ex: CH2604-0000">
+          </div>
+          <div class="field">
+            <label>Versão</label>
+            <input type="text" id="versao" placeholder="Ex: 1.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <div class="toggle-group">
+            <input type="radio" name="tipo" id="tipo-nova" value="Nova Regra">
+            <label for="tipo-nova">Nova Regra</label>
+            <input type="radio" name="tipo" id="tipo-ajuste" value="Ajuste de Regra">
+            <label for="tipo-ajuste">Ajuste de Regra</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Solicitante</label>
+          <input type="text" id="solicitante" placeholder="Nome do solicitante">
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Detalhes da Regra</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Regra</label>
+            <input type="text" id="regra" placeholder="Nome da regra">
+          </div>
+          <div class="field">
+            <label>Modulo (Pacote)</label>
+            <div class="select-wrap">
+              <select id="modulo">
+                <option value="">Selecione o modulo...</option>
+                <option value="Autorizacao">Autorizacao</option>
+                <option value="Captura">Captura</option>
+                <option value="Execucao">Execucao</option>
+                <option value="XML">XML</option>
+                <option value="Auditoria Webin/GPL">Auditoria Webin/GPL</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Objetivo</label>
+          <textarea id="objetivo" placeholder="Descreva o objetivo desta regra..."></textarea>
+        </div>
+        <div class="field">
+          <div class="field-label">Itens ou Grupo de Itens</div>
+          <div class="field-inline">
+            <div class="textarea-wrap">
+              <textarea id="itens" placeholder="Descreva os itens ou grupos envolvidos..."></textarea>
+            </div>
+            <div class="side-flags">
+              <button class="btn-flag" type="button" onclick="preencherCampo('itens','Nao ha')">Nao ha</button>
+              <div class="flag-box">
+                <div class="flag-title">Grupo necessita de revisao?</div>
+                <div class="flag-options">
+                  <input type="radio" name="flag-revisao" id="flag-sim" value="Sim">
+                  <label for="flag-sim">Sim</label>
+                  <input type="radio" name="flag-revisao" id="flag-nao" value="Nao">
+                  <label for="flag-nao">Nao</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Prestadores Envolvidos</div>
+          <div class="field-inline">
+            <div class="textarea-wrap">
+              <textarea id="prestadores" placeholder="Liste os prestadores envolvidos..."></textarea>
+            </div>
+            <div class="side-flags">
+              <button class="btn-flag" type="button" onclick="preencherCampo('prestadores','Todos')">Todos</button>
+              <button class="btn-flag" type="button" onclick="preencherCampo('prestadores','Nao ha')">Nao ha</button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Abrangencia</label>
+          <div class="select-wrap">
+            <select id="abrangencia">
+              <option value="">Selecione a abrangencia...</option>
+              <option value="Local">Local</option>
+              <option value="Intercambio">Intercambio</option>
+              <option value="Transito">Transito</option>
+              <option value="Todos">Todos</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-reset" onclick="resetForm()">Limpar</button>
+        <button class="btn-generate" onclick="gerarESalvar()">Gerar e Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORICO -->
+  <div class="panel" id="panel-historico">
+    <div class="hist-inner">
+      <div class="hist-toolbar">
+        <h2>Historico de Regras</h2>
+        <button class="btn-reload" onclick="carregarHistorico()">Atualizar</button>
+      </div>
+
+      <div class="hist-search-bar">
+        <input type="text" id="hist-busca" placeholder="Buscar por titulo, chamado, solicitante, regra..." oninput="aplicarFiltros()">
+      </div>
+
+      <div class="hist-filtros">
+        <div class="filtro-group">
+          <div class="filtro-label">Tipo</div>
+          <div class="select-wrap">
+            <select id="f-tipo" onchange="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option value="Nova Regra">Nova Regra</option>
+              <option value="Ajuste de Regra">Ajuste de Regra</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtro-group">
+          <div class="filtro-label">Modulo</div>
+          <div class="select-wrap">
+            <select id="f-modulo" onchange="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option value="Autorizacao">Autorizacao</option>
+              <option value="Captura">Captura</option>
+              <option value="Execucao">Execucao</option>
+              <option value="XML">XML</option>
+              <option value="Auditoria Webin/GPL">Auditoria Webin/GPL</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtro-group">
+          <div class="filtro-label">Grupo de Itens</div>
+          <div class="select-wrap">
+            <select id="f-itens" onchange="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option value="sim">Contém</option>
+              <option value="nao">Nao contém</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtro-group">
+          <div class="filtro-label">Prestadores</div>
+          <div class="select-wrap">
+            <select id="f-prestadores" onchange="aplicarFiltros()">
+              <option value="">Todos</option>
+              <option value="sim">Contém</option>
+              <option value="nao">Nao contém</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtro-group">
+          <div class="filtro-label">Abrangencia</div>
+          <div class="select-wrap">
+            <select id="f-abrangencia" onchange="aplicarFiltros()">
+              <option value="">Todas</option>
+              <option value="Local">Local</option>
+              <option value="Intercambio">Intercambio</option>
+              <option value="Transito">Transito</option>
+              <option value="Todos">Todos</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-limpar-filtros" onclick="limparFiltros()">Limpar filtros</button>
+      </div>
+
+      <div id="hist-contagem" class="hist-contagem"></div>
+      <div id="hist-lista"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PREVIEW OVERLAY -->
+<div id="preview-overlay">
+  <div class="preview-toolbar">
+    <span>Visualizacao do Documento</span>
+    <div class="preview-actions">
+      <button class="btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
+      <button class="btn-close-prev" onclick="fecharPreview()">Fechar</button>
+    </div>
+  </div>
+  <div id="doc-paper"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── ESTADO ──
+  let pastaAtual = '';
+  let usuarioAtual = '';
+
+  // ── INIT ──
+  async function init() {
+    const config = await window.api.getConfig();
+    usuarioAtual = await window.api.getUsername();
+    if (config.pastaRede) {
+      pastaAtual = config.pastaRede;
+      document.getElementById('pasta-label').textContent = pastaAtual;
+      document.getElementById('banner-sem-pasta').style.display = 'none';
+    } else {
+      document.getElementById('pasta-label').textContent = 'Nenhuma pasta configurada';
+      document.getElementById('banner-sem-pasta').style.display = 'block';
+    }
+  }
+  init();
+
+  // ── TABS ──
+  function trocarTab(nome, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('panel-' + nome).classList.add('active');
+    if (nome === 'historico') carregarHistorico();
+  }
+
+  // ── PASTA ──
+  async function escolherPasta() {
+    const res = await window.api.escolherPasta();
+    if (res.ok) {
+      pastaAtual = res.pasta;
+      document.getElementById('pasta-label').textContent = pastaAtual;
+      document.getElementById('banner-sem-pasta').style.display = 'none';
+      toast('Pasta configurada com sucesso');
+    }
+  }
+
+  // ── UTIL ──
+  function val(id) {
+    const el = document.getElementById(id);
+    return (el ? el.value.trim() : '') || '—';
+  }
+  function up(id) {
+    const el = document.getElementById(id);
+    const v = el ? el.value.trim() : '';
+    return v ? v.toUpperCase() : '—';
+  }
+  function preencherCampo(id, texto) {
+    const el = document.getElementById(id);
+    if (el) el.value = texto;
+  }
+  function toast(msg, erro) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (erro ? ' erro' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── GERAR E SALVAR ──
+  async function gerarESalvar() {
+    if (!pastaAtual) {
+      toast('Configure a pasta de rede primeiro', true);
+      document.getElementById('banner-sem-pasta').style.display = 'block';
+      return;
+    }
+
+    // Limpa marcações anteriores
+    document.querySelectorAll('.campo-invalido').forEach(el => el.classList.remove('campo-invalido'));
+
+    const tipo = document.querySelector('input[name="tipo"]:checked');
+    const flag = document.querySelector('input[name="flag-revisao"]:checked');
+    const camposTexto = ['titulo','chamado','versao','solicitante','regra','objetivo','itens','prestadores'];
+    const nomesCampos = {
+      titulo: 'Titulo', chamado: 'N do Chamado', versao: 'Versao',
+      solicitante: 'Solicitante', regra: 'Regra', objetivo: 'Objetivo',
+      itens: 'Itens ou Grupo de Itens', prestadores: 'Prestadores Envolvidos'
+    };
+    let erros = [];
+
+    camposTexto.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el || !el.value.trim()) {
+        erros.push(nomesCampos[id]);
+        if (el) el.classList.add('campo-invalido');
+      }
+    });
+
+    if (!tipo) {
+      erros.push('Tipo (Nova Regra ou Ajuste de Regra)');
+      const tg = document.querySelector('.toggle-group');
+      if (tg) tg.classList.add('campo-invalido');
+    }
+    if (!document.getElementById('modulo').value) {
+      erros.push('Modulo (Pacote)');
+      document.getElementById('modulo').classList.add('campo-invalido');
+    }
+    if (!document.getElementById('abrangencia').value) {
+      erros.push('Abrangencia');
+      document.getElementById('abrangencia').classList.add('campo-invalido');
+    }
+
+    if (erros.length > 0) {
+      toast('Preencha: ' + erros.join(', '), true);
+      return;
+    }
+
+    const agora = new Date();
+
+    const registro = {
+      id: Date.now().toString(),
+      data: agora.toLocaleDateString('pt-BR'),
+      hora: agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+      geradoPor: usuarioAtual,
+      titulo: up('titulo'),
+      chamado: up('chamado'),
+      versao: up('versao'),
+      tipo: tipo ? tipo.value : '—',
+      solicitante: up('solicitante'),
+      regra: up('regra'),
+      modulo: val('modulo'),
+      objetivo: up('objetivo'),
+      itens: up('itens'),
+      revisao: flag ? flag.value : null,
+      prestadores: up('prestadores'),
+      abrangencia: val('abrangencia'),
+    };
+
+    const res = await window.api.salvarRegistro(registro);
+    if (!res.ok) {
+      toast('Erro ao salvar: ' + res.erro, true);
+      return;
+    }
+
+    mostrarDoc(registro);
+    toast('Registro salvo e documento gerado');
+  }
+
+  // ── MONTAR HTML DO DOCUMENTO ──
+  function docHTML(r) {
+    const isAjuste = r.tipo === 'Ajuste de Regra';
+    const flagPill = r.revisao
+      ? `<span class="flag-pill ${r.revisao.toLowerCase()}">${r.revisao}</span>`
+      : `<span class="flag-pill" style="background:#f2f2f2;color:#999;border:1px solid #ddd">—</span>`;
+
+    return `
+      <div class="doc-header-bar">
+        <div class="doc-header-left">
+          <div class="doc-accent-bar"></div>
+          <div>
+            <div class="doc-title-main">${r.titulo}</div>
+            <div class="doc-tipo-badge ${isAjuste ? 'ajuste' : ''}">${r.tipo}</div>
+          </div>
+        </div>
+        <div class="doc-meta">
+          Chamado: <strong>${r.chamado}</strong><br>
+          Versao: <strong>${r.versao}</strong><br>
+          Emitido em: ${r.data} as ${r.hora}
+        </div>
+      </div>
+      <div class="doc-block-a">
+        <div class="doc-field-a"><label>Chamado</label><span>${r.chamado}</span></div>
+        <div class="doc-field-a"><label>Versao</label><span>${r.versao}</span></div>
+        <div class="doc-field-a"><label>Tipo</label><span>${r.tipo}</span></div>
+        <div class="doc-field-a"><label>Solicitante</label><span>${r.solicitante}</span></div>
+      </div>
+      <div class="doc-divider">
+        <div class="doc-divider-label">Detalhes da Regra</div>
+        <div class="doc-divider-line"></div>
+      </div>
+      <div class="doc-grid-b">
+        <div class="doc-field-b"><label>Regra</label><div class="value">${r.regra}</div></div>
+        <div class="doc-field-b"><label>Modulo</label><div class="value">${r.modulo}</div></div>
+        <div class="doc-field-b full"><label>Objetivo</label><div class="value">${r.objetivo.replace(/\n/g,'<br>')}</div></div>
+        <div class="doc-field-b full">
+          <label>Itens ou Grupo de Itens</label>
+          <div class="doc-flag-inline">
+            <div class="value">${r.itens.replace(/\n/g,'<br>')}</div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+              <span style="font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#7aaa8e">Revisao?</span>
+              ${flagPill}
+            </div>
+          </div>
+        </div>
+        <div class="doc-field-b full"><label>Prestadores Envolvidos</label><div class="value">${r.prestadores.replace(/\n/g,'<br>')}</div></div>
+        <div class="doc-field-b full"><label>Abrangencia</label><div class="value">${r.abrangencia}</div></div>
+      </div>
+      <div class="doc-footer">
+        <span>Gerado em ${r.data} as ${r.hora} por <strong>${r.geradoPor || '—'}</strong></span>
+        <span>Sistema de Registro de Regras</span>
+      </div>
+    `;
+  }
+
+  function mostrarDoc(registro) {
+    document.getElementById('doc-paper').innerHTML = docHTML(registro);
+    document.getElementById('preview-overlay').classList.add('active');
+  }
+
+  function fecharPreview() {
+    document.getElementById('preview-overlay').classList.remove('active');
+  }
+
+  document.getElementById('preview-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharPreview();
+  });
+
+  // ── HISTORICO ──
+  let _historicoCache = [];
+
+  async function carregarHistorico() {
+    const lista = document.getElementById('hist-lista');
+    const res = await window.api.lerHistorico();
+    if (!res.ok) {
+      lista.innerHTML = '<div class="hist-empty">Configure a pasta de rede para ver o historico.</div>';
+      _historicoCache = [];
+      atualizarContagem(0, 0);
+      return;
+    }
+    _historicoCache = res.historico;
+    aplicarFiltros();
+  }
+
+  function aplicarFiltros() {
+    const busca = (document.getElementById('hist-busca').value || '').toLowerCase().trim();
+    const fTipo = document.getElementById('f-tipo').value;
+    const fModulo = document.getElementById('f-modulo').value;
+    const fItens = document.getElementById('f-itens').value;
+    const fPrestadores = document.getElementById('f-prestadores').value;
+    const fAbrangencia = document.getElementById('f-abrangencia').value;
+
+    const filtrados = _historicoCache.filter(r => {
+      // busca fulltext em todos os campos de texto
+      if (busca) {
+        const texto = [r.titulo, r.chamado, r.destino, r.solicitante, r.regra,
+                       r.modulo, r.objetivo, r.itens, r.prestadores, r.abrangencia,
+                       r.tipo, r.data].join(' ').toLowerCase();
+        if (!texto.includes(busca)) return false;
+      }
+      if (fTipo && r.tipo !== fTipo) return false;
+      if (fModulo && r.modulo !== fModulo) return false;
+      if (fAbrangencia && r.abrangencia !== fAbrangencia) return false;
+      if (fItens) {
+        const temItens = r.itens && r.itens.trim() !== '' && r.itens.trim().toLowerCase() !== 'nao ha' && r.itens.trim() !== '—';
+        if (fItens === 'sim' && !temItens) return false;
+        if (fItens === 'nao' && temItens) return false;
+      }
+      if (fPrestadores) {
+        const temPrestadores = r.prestadores && r.prestadores.trim() !== '' && r.prestadores.trim().toLowerCase() !== 'nao ha' && r.prestadores.trim() !== '—';
+        if (fPrestadores === 'sim' && !temPrestadores) return false;
+        if (fPrestadores === 'nao' && temPrestadores) return false;
+      }
+      return true;
+    });
+
+    renderLista(filtrados);
+    atualizarContagem(filtrados.length, _historicoCache.length);
+  }
+
+  function atualizarContagem(filtrados, total) {
+    const el = document.getElementById('hist-contagem');
+    if (!el) return;
+    if (total === 0) { el.textContent = ''; return; }
+    if (filtrados === total) {
+      el.textContent = total + ' registro' + (total !== 1 ? 's' : '');
+    } else {
+      el.textContent = filtrados + ' de ' + total + ' registros';
+    }
+  }
+
+  function renderLista(lista) {
+    const el = document.getElementById('hist-lista');
+    if (lista.length === 0) {
+      el.innerHTML = '<div class="hist-empty">Nenhum registro encontrado.</div>';
+      return;
+    }
+    el.innerHTML = lista.map(r => `
+      <div class="hist-card">
+        <div class="hist-card-info">
+          <div class="hist-card-title">${r.titulo}</div>
+          <div class="hist-card-meta">
+            <span>${r.data} as ${r.hora}</span>
+            <span>Chamado: ${r.chamado}</span>
+            <span>Modulo: ${r.modulo}</span>
+            <span class="hist-badge ${r.tipo === 'Nova Regra' ? 'nova' : 'ajuste'}">${r.tipo}</span>
+          </div>
+        </div>
+        <div class="hist-card-actions">
+          <button class="btn-ver" onclick="verRegistro('${r.id}')">Ver</button>
+          ${r.geradoPor === usuarioAtual
+            ? `<button class="btn-del" onclick="deletarRegistro('${r.id}')">Excluir</button>`
+            : `<button class="btn-del-disabled" title="Somente ${r.geradoPor} pode excluir">Excluir</button>`
+          }
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function limparFiltros() {
+    document.getElementById('hist-busca').value = '';
+    document.getElementById('f-tipo').value = '';
+    document.getElementById('f-modulo').value = '';
+    document.getElementById('f-itens').value = '';
+    document.getElementById('f-prestadores').value = '';
+    document.getElementById('f-abrangencia').value = '';
+    aplicarFiltros();
+  }
+
+  async function verRegistro(id) {
+    const r = _historicoCache.find(x => x.id === id);
+    if (r) mostrarDoc(r);
+  }
+
+  async function deletarRegistro(id) {
+    if (!confirm('Excluir este registro do historico compartilhado?')) return;
+    const res = await window.api.deletarRegistro(id);
+    if (res.ok) {
+      toast('Registro excluido');
+      carregarHistorico();
+    } else {
+      toast('Erro ao excluir', true);
+    }
+  }
+
+  // ── RESET ──
+  function resetForm() {
+    ['titulo','chamado','versao','solicitante','regra','objetivo','itens','prestadores']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('modulo').value = '';
+    document.getElementById('abrangencia').value = '';
+    document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+    document.querySelectorAll('.campo-invalido').forEach(el => el.classList.remove('campo-invalido'));
+  }
+</script>
+</body>
+</html>
