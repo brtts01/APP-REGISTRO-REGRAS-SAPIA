@@ -1,0 +1,38 @@
+name: Gerar instalador Windows
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+    defaults:
+      run:
+        working-directory: ./regras-app  
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Gerar instalador .exe (Electron Builder)
+        run: npm run build
+
+      - name: Disponibilizar instalador para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Registro-de-Regras-Installer
+          path: regras-app/dist/*.exe    
+          retention-days: 30
